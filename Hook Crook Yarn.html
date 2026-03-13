@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hook, Crook and Yarn</title>
+  <style>
+    :root {
+      --bg: #f7f2ef;
+      --panel: #fffaf6;
+      --ink: #2f2621;
+      --muted: #796d64;
+      --accent: #c9774f;
+      --border: #e2d6ce;
+      --ok: #4d8b5d;
+      --warn: #b86f2e;
+      --danger: #b94a4a;
+      --ghost: #d8cdc4;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    #app {
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px;
+      padding: 10px;
+    }
+
+    header {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .title {
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+
+    .pill {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    main {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1fr 1.3fr 1fr;
+      gap: 10px;
+    }
+
+    .panel {
+      min-height: 0;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: auto;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 4px;
+    }
+
+    button {
+      border: 1px solid #b89f91;
+      background: #fff;
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:hover:not(:disabled) { border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .tiny { color: var(--muted); font-size: 0.85rem; }
+
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .swatch {
+      border-radius: 10px;
+      border: 2px solid transparent;
+      padding: 8px 4px;
+      text-align: center;
+      color: #1f1f1f;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .swatch.active { border-color: #222; box-shadow: 0 0 0 2px #fff inset; }
+
+    .craft-card {
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .grid-wrap {
+      background: #fcf7f3;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 310px;
+    }
+
+    .craft-grid {
+      display: grid;
+      gap: 2px;
+      user-select: none;
+    }
+
+    .cell {
+      width: 18px;
+      height: 18px;
+      border-radius: 3px;
+      background: transparent;
+      border: 1px solid transparent;
+    }
+
+    .cell.shape {
+      background: var(--ghost);
+      opacity: 0.45;
+      border-color: #c5b8ad;
+    }
+
+    .cell.stitched {
+      opacity: 1;
+      border-color: #463a33;
+    }
+
+    .bar {
+      height: 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #f1e8e2;
+      overflow: hidden;
+    }
+
+    .bar > div {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #d69a68, #ca6a59);
+      transition: width .15s linear;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px 8px;
+      font-size: 0.82rem;
+    }
+
+    .stats-grid strong { color: var(--ink); }
+
+    .variant-list {
+      margin-top: 4px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.25;
+      max-height: 68px;
+      overflow: auto;
+      border-top: 1px dashed var(--border);
+      padding-top: 4px;
+    }
+
+    .danger-btn {
+      border-color: #ad6b6b;
+      background: #fff5f5;
+      color: #7b2020;
+    }
+
+    #emergencyBtn {
+      border-color: #699c77;
+      background: #f2fff5;
+      color: #205331;
+    }
+
+    #log {
+      margin: 0;
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 0.83rem;
+    }
+
+    .good { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--danger); }
+  </style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="title">🧶 Hook, Crook and Yarn</div>
+    <div id="money" class="pill">$0</div>
+    <div id="activeYarn" class="pill">Active Yarn: None</div>
+  </header>
+
+  <main>
+    <section class="panel" id="leftPanel">
+      <h2>Yarn Shop & Inventory</h2>
+      <div id="yarnShop"></div>
+      <h2>Yarn Selection</h2>
+      <div id="swatches" class="swatch-grid"></div>
+    </section>
+
+    <section class="panel" id="centerPanel">
+      <h2>Current Project</h2>
+      <div class="craft-card">
+        <div class="row"><strong id="projectName">No project selected</strong><span class="tiny" id="projectStats"></span></div>
+        <div class="tiny" id="variantName">Variant: -</div>
+        <div class="bar"><div id="progressFill"></div></div>
+        <div class="row tiny"><span id="progressText">Progress: 0/0</span><span id="stitchInfo">Next stitch: -</span></div>
+      </div>
+      <div class="grid-wrap"><div id="craftGrid" class="craft-grid"></div></div>
+      <div class="row">
+        <button id="stitchBtn">Stitch</button>
+        <button id="sellBtn" disabled>Sell Finished Item</button>
+      </div>
+      <div id="saleSummary" class="tiny"></div>
+    </section>
+
+    <section class="panel" id="rightPanel">
+      <h2>Hooks / Tools</h2>
+      <div id="hookList"></div>
+      <div class="row">
+        <button id="repairBtn">Repair Equipped Hook</button>
+        <span id="hookStatus" class="tiny">No hook equipped</span>
+      </div>
+
+      <h2>Choose Item</h2>
+      <div id="itemList"></div>
+
+      <h2>Current Run Stats</h2>
+      <div class="craft-card"><div id="runStats" class="stats-grid"></div></div>
+
+      <h2>Lifetime Stats</h2>
+      <div class="craft-card"><div id="lifetimeStats" class="stats-grid"></div></div>
+
+      <h2>Recovery</h2>
+      <button id="emergencyBtn" style="display:none;">Claim Emergency Craft Grant</button>
+
+      <h2>Save / Reset</h2>
+      <div class="row">
+        <button id="saveGameBtn">Save Game</button>
+        <button id="loadGameBtn">Load Game</button>
+      </div>
+      <input id="loadFileInput" type="file" accept="application/json,.json" style="display:none;" />
+      <div class="row">
+        <button id="startOverBtn">Start Over (New Run)</button>
+        <button id="fullResetBtn" class="danger-btn">Full Reset (Wipe Save)</button>
+      </div>
+      <span class="tiny" id="saveState">Autosave ready</span>
+
+      <h2>Message Log</h2>
+      <ul id="log"></ul>
+    </section>
+  </main>
+</div>
+
+<script>
+(() => {
+  const GAME_TITLE = "Hook, Crook and Yarn";
+  const SAVE_VERSION = 3;
+  const SAVE_KEY = "hookCrookAndYarnSaveV3";
+  const LEGACY_KEYS = ["hookCrookAndYarnSaveV2", "hookCrookAndYarnSaveV1"];
+
+  const STARTING_MONEY = 140;
+  const STARTING_ACTIVE_YARN = "red";
+
+  const yarnCatalog = [
+    { id: "red", name: "Red Yarn", color: "#de4e4e", text: "#fff", price: 3, packUnits: 8 },
+    { id: "orange", name: "Orange Yarn", color: "#e78a3c", text: "#222", price: 3, packUnits: 8 },
+    { id: "yellow", name: "Yellow Yarn", color: "#f2dd4b", text: "#222", price: 3, packUnits: 8 },
+    { id: "green", name: "Green Yarn", color: "#57a66a", text: "#fff", price: 3, packUnits: 8 },
+    { id: "blue", name: "Blue Yarn", color: "#4d7fd9", text: "#fff", price: 3, packUnits: 8 },
+    { id: "indigo", name: "Indigo Yarn", color: "#4b4bb7", text: "#fff", price: 4, packUnits: 8 },
+    { id: "violet", name: "Violet Yarn", color: "#8f59c8", text: "#fff", price: 4, packUnits: 8 }
+  ];
+
+  const hookCatalog = [
+    { id: "basic", name: "Basic Hook", price: 18, maxDurability: 120, stitchPower: 1, repairCost: 6, durabilityLossPerStitch: 0.35 },
+    { id: "comfort", name: "Comfortable Hook", price: 62, maxDurability: 180, stitchPower: 2, repairCost: 12, durabilityLossPerStitch: 0.3 },
+    { id: "premium", name: "Premium Hook", price: 125, maxDurability: 260, stitchPower: 3, repairCost: 20, durabilityLossPerStitch: 0.26 }
+  ];
+
+  function makePath(shapeGrid, direction = "snake") {
+    const path = [];
+    for (let r = 0; r < shapeGrid.length; r++) {
+      const cols = [...shapeGrid[r].keys()];
+      const use = direction === "snake" && r % 2 ? cols.reverse() : cols;
+      for (const c of use) if (shapeGrid[r][c] === 1) path.push({ row: r, col: c });
+    }
+    return path;
+  }
+
+  const baseItems = [
+    {
+      id: "coaster",
+      name: "Coaster",
+      complexity: 1,
+      saleValue: 62,
+      variants: [
+        {
+          id: "round",
+          name: "Round",
+          shapeGrid: [
+            [0,0,1,1,1,0,0],
+            [0,1,1,1,1,1,0],
+            [1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1],
+            [0,1,1,1,1,1,0],
+            [0,0,1,1,1,0,0]
+          ]
+        }
+      ]
+    },
+    {
+      id: "scarf",
+      name: "Scarf",
+      complexity: 2,
+      saleValue: 88,
+      variants: [
+        {
+          id: "classic",
+          name: "Classic",
+          shapeGrid: [
+            [1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1]
+          ]
+        }
+      ]
+    },
+    {
+      id: "beanie",
+      name: "Beanie Hat",
+      complexity: 3,
+      saleValue: 118,
+      variants: [
+        {
+          id: "classic",
+          name: "Classic Beanie",
+          shapeGrid: [
+            [0,0,1,1,1,1,1,1,0,0],
+            [0,1,1,1,1,1,1,1,1,0],
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1]
+          ]
+        },
+        {
+          id: "pompom",
+          name: "Pom-Pom Beanie",
+          shapeGrid: [
+            [0,0,0,0,1,1,0,0,0,0],
+            [0,0,0,1,1,1,1,0,0,0],
+            [0,0,1,1,1,1,1,1,0,0],
+            [0,1,1,1,1,1,1,1,1,0],
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1]
+          ]
+        },
+        {
+          id: "folded",
+          name: "Folded Rim Beanie",
+          shapeGrid: [
+            [0,0,1,1,1,1,1,1,0,0],
+            [0,1,1,1,1,1,1,1,1,0],
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1]
+          ]
+        },
+        {
+          id: "slouch",
+          name: "Slouch Beanie",
+          shapeGrid: [
+            [0,0,0,0,1,1,1,1,0,0,0,0],
+            [0,0,0,1,1,1,1,1,1,0,0,0],
+            [0,0,1,1,1,1,1,1,1,1,0,0],
+            [0,1,1,1,1,1,1,1,1,1,1,0],
+            [0,1,1,1,1,1,1,1,1,1,1,0],
+            [1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1]
+          ]
+        }
+      ]
+    },
+    {
+      id: "plushie",
+      name: "Tiny Plushie",
+      complexity: 4,
+      saleValue: 162,
+      variants: [
+        { id: "frog", name: "Frog", shapeGrid: [[0,1,1,0,0,1,1,0],[1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,0],[0,1,1,1,1,1,1,0],[0,1,1,0,0,1,1,0],[1,1,1,0,0,1,1,1],[0,1,0,0,0,0,1,0]] },
+        { id: "cat", name: "Cat", shapeGrid: [[1,0,0,0,0,0,0,1],[1,1,0,0,0,0,1,1],[1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,0],[0,1,1,1,1,1,1,0],[0,1,1,0,0,1,1,0],[0,1,0,0,0,0,1,0]] },
+        { id: "stegosaurus", name: "Stegosaurus", shapeGrid: [[0,0,1,1,0,0,0,0,0,0],[0,1,1,1,1,0,0,0,0,0],[1,1,1,1,1,1,1,1,0,0],[1,1,1,1,1,1,1,1,1,0],[0,1,1,1,1,1,1,1,1,1],[0,0,1,1,1,1,1,1,1,0],[0,1,1,0,0,1,1,0,0,0],[1,1,0,0,0,0,1,1,0,0]] },
+        { id: "trex", name: "T-Rex", shapeGrid: [[0,0,0,1,1,1,0,0,0],[0,0,1,1,1,1,1,0,0],[0,0,1,1,1,1,1,1,0],[0,1,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,1,0],[0,0,1,1,0,1,1,0,0],[0,1,1,0,0,0,1,1,0]] },
+        { id: "triceratops", name: "Triceratops", shapeGrid: [[0,1,1,0,0,0,1,1,0,0],[1,1,1,1,0,1,1,1,1,0],[1,1,1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,1,1,1],[0,0,1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,1,1,0],[1,1,1,0,0,0,1,1,0,0],[0,1,0,0,0,0,0,1,0,0]] },
+        { id: "dragon", name: "Dragon", shapeGrid: [[0,0,1,1,0,0,0,1,1,0],[0,1,1,1,1,0,1,1,1,1],[1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,0],[0,1,1,1,1,1,1,1,1,0],[0,0,1,1,1,1,1,1,0,0],[0,1,1,0,0,1,1,0,1,0],[1,1,0,0,0,0,1,1,1,0]] },
+        { id: "witch", name: "Witch Doll", shapeGrid: [[0,0,1,1,1,1,0,0],[0,1,1,1,1,1,1,0],[0,0,1,1,1,1,0,0],[0,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,0,0,1,1]] },
+        { id: "pilgrim", name: "Male Pilgrim Doll", shapeGrid: [[0,1,1,1,1,1,1,0],[0,0,1,1,1,1,0,0],[0,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,0,0,1,1]] },
+        { id: "car", name: "Car", shapeGrid: [[0,0,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1],[0,1,1,0,0,0,0,1,1,0],[1,1,1,0,0,0,0,1,1,1]] },
+        { id: "snake", name: "Snake", shapeGrid: [[0,0,1,1,1,1,0,0,0,0],[0,1,1,1,1,1,1,0,0,0],[1,1,1,0,0,1,1,1,0,0],[0,1,1,0,0,0,1,1,1,0],[0,0,1,1,0,0,0,1,1,1],[0,0,0,1,1,1,1,1,1,0]] },
+        { id: "octopus", name: "Octopus", shapeGrid: [[0,0,1,1,1,1,0,0],[0,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,0],[1,1,0,1,1,0,1,1],[1,0,0,1,1,0,0,1],[1,0,1,1,1,1,0,1]] },
+        { id: "unicorn", name: "Unicorn", shapeGrid: [[0,0,1,0,0,0,0,0,0],[0,1,1,1,0,0,1,1,0],[1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,1,0],[0,0,1,1,1,1,1,0,0],[0,1,1,0,0,0,1,1,0],[1,1,0,0,0,0,0,1,1]] },
+        { id: "fairy", name: "Fairy", shapeGrid: [[1,0,0,1,1,0,0,1],[1,1,0,1,1,0,1,1],[0,1,1,1,1,1,1,0],[0,0,1,1,1,1,0,0],[0,1,1,1,1,1,1,0],[1,1,1,0,0,1,1,1],[0,1,1,0,0,1,1,0],[0,1,0,0,0,0,1,0]] },
+        { id: "onesie", name: "Baby Onesies", shapeGrid: [[0,0,1,1,1,1,0,0],[0,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,0],[0,1,1,0,0,1,1,0],[1,1,0,0,0,0,1,1],[1,0,0,0,0,0,0,1]] },
+        { id: "girldoll", name: "Girl Doll", shapeGrid: [[0,0,1,1,1,1,0,0],[0,1,1,1,1,1,1,0],[0,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,0],[0,1,1,1,1,1,1,0],[1,1,1,0,0,1,1,1],[0,1,0,0,0,0,1,0]] },
+        { id: "boydoll", name: "Boy Doll", shapeGrid: [[0,1,1,1,1,1,1,0],[0,1,1,1,1,1,1,0],[0,0,1,1,1,1,0,0],[1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,0],[0,1,1,1,1,1,1,0],[1,1,1,0,0,1,1,1],[1,0,1,0,0,1,0,1]] },
+        { id: "wizard", name: "Wizard", shapeGrid: [[0,0,0,1,1,0,0,0],[0,0,1,1,1,1,0,0],[0,1,1,1,1,1,1,0],[0,0,1,1,1,1,0,0],[0,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1],[0,1,1,0,0,1,1,0],[1,1,0,0,0,0,1,1]] }
+      ]
+    },
+    {
+      id: "bootie",
+      name: "Bootie",
+      complexity: 4,
+      saleValue: 176,
+      variants: [
+        {
+          id: "classicBootie",
+          name: "Simple Shoe",
+          shapeGrid: [
+            [0,0,0,1,1,1,1,0,0,0,0],
+            [0,0,1,1,1,1,1,1,0,0,0],
+            [0,1,1,1,1,1,1,1,1,0,0],
+            [0,1,1,1,1,1,1,1,1,0,0],
+            [0,1,1,1,1,1,1,1,1,0,0],
+            [1,1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1,1],
+            [0,0,1,1,1,1,1,1,1,1,1],
+            [0,0,0,0,1,1,1,1,0,0,0]
+          ]
+        }
+      ]
+    }
+  ];
+
+  const items = baseItems.map(item => ({
+    ...item,
+    variants: item.variants.map(v => {
+      const stitchPath = makePath(v.shapeGrid, "snake");
+      return {
+        ...v,
+        stitchPath,
+        totalYarnNeeded: stitchPath.length,
+        totalProgressNeeded: stitchPath.length
+      };
+    })
+  }));
+
+  function defaultHooksState() {
+    return Object.fromEntries(hookCatalog.map(h => [h.id, { owned: h.id === "basic", durability: h.maxDurability }]));
+  }
+
+  function createLifetimeStats() {
+    const perItem = {};
+    for (const item of items) {
+      perItem[item.id] = { started: 0, completed: 0, abandoned: 0, revenue: 0 };
+    }
+
+    return {
+      itemsStarted: 0,
+      itemsCompleted: 0,
+      itemsAbandoned: 0,
+      revenue: 0,
+      yarnCost: 0,
+      repairCost: 0,
+      bestSale: 0,
+      mostProfitableItem: "None",
+      mostProfitableItemValue: 0,
+      leastProfitableItem: "None",
+      leastProfitableItemValue: 0,
+      perItem,
+      saleHistory: []
+    };
+  }
+
+  function createRunState() {
+    return {
+      money: STARTING_MONEY,
+      yarn: Object.fromEntries(yarnCatalog.map(y => [y.id, 0])),
+      activeYarn: STARTING_ACTIVE_YARN,
+      hooks: defaultHooksState(),
+      equippedHook: "basic",
+      selectedItemId: items[0].id,
+      project: null,
+      saleSummary: "",
+      emergencyGrantUsed: false,
+      runStats: {
+        itemsStarted: 0,
+        itemsCompleted: 0,
+        itemsAbandoned: 0,
+        revenue: 0,
+        yarnCost: 0,
+        repairCost: 0,
+        bestSale: 0
+      }
+    };
+  }
+
+  const state = {
+    runState: createRunState(),
+    lifetimeStats: createLifetimeStats(),
+    log: []
+  };
+
+  const el = {
+    money: document.getElementById("money"),
+    activeYarn: document.getElementById("activeYarn"),
+    yarnShop: document.getElementById("yarnShop"),
+    swatches: document.getElementById("swatches"),
+    hookList: document.getElementById("hookList"),
+    hookStatus: document.getElementById("hookStatus"),
+    itemList: document.getElementById("itemList"),
+    projectName: document.getElementById("projectName"),
+    projectStats: document.getElementById("projectStats"),
+    variantName: document.getElementById("variantName"),
+    progressFill: document.getElementById("progressFill"),
+    progressText: document.getElementById("progressText"),
+    stitchInfo: document.getElementById("stitchInfo"),
+    craftGrid: document.getElementById("craftGrid"),
+    stitchBtn: document.getElementById("stitchBtn"),
+    sellBtn: document.getElementById("sellBtn"),
+    repairBtn: document.getElementById("repairBtn"),
+    emergencyBtn: document.getElementById("emergencyBtn"),
+    saveGameBtn: document.getElementById("saveGameBtn"),
+    loadGameBtn: document.getElementById("loadGameBtn"),
+    loadFileInput: document.getElementById("loadFileInput"),
+    startOverBtn: document.getElementById("startOverBtn"),
+    fullResetBtn: document.getElementById("fullResetBtn"),
+    saleSummary: document.getElementById("saleSummary"),
+    runStats: document.getElementById("runStats"),
+    lifetimeStats: document.getElementById("lifetimeStats"),
+    log: document.getElementById("log"),
+    saveState: document.getElementById("saveState")
+  };
+
+  function addLog(text, cls = "") {
+    state.log.unshift({ text, cls, t: Date.now() });
+    state.log = state.log.slice(0, 16);
+    renderLog();
+  }
+
+  function getItem(id) { return items.find(i => i.id === id); }
+  function getHook(id) { return hookCatalog.find(h => h.id === id); }
+  function getYarn(id) { return yarnCatalog.find(y => y.id === id); }
+  function netProfit(stats) { return stats.revenue - stats.yarnCost - stats.repairCost; }
+
+  function getVariant(item, variantId) {
+    if (!item) return null;
+    return item.variants.find(v => v.id === variantId) || item.variants[0] || null;
+  }
+
+  function getRandomVariant(item) {
+    const i = Math.floor(Math.random() * item.variants.length);
+    return item.variants[i];
+  }
+
+  function ensurePerItemStats(itemId) {
+    if (!state.lifetimeStats.perItem[itemId]) {
+      state.lifetimeStats.perItem[itemId] = { started: 0, completed: 0, abandoned: 0, revenue: 0 };
+    }
+  }
+
+  function recordAbandonmentIfNeeded() {
+    const p = state.runState.project;
+    if (!p) return;
+    const item = getItem(p.itemId);
+    const variant = getVariant(item, p.variantId);
+    if (!variant || p.progress <= 0 || p.progress >= variant.stitchPath.length) return;
+
+    state.runState.runStats.itemsAbandoned += 1;
+    state.lifetimeStats.itemsAbandoned += 1;
+    ensurePerItemStats(item.id);
+    state.lifetimeStats.perItem[item.id].abandoned += 1;
+    addLog(`Abandoned ${item.name} (${variant.name}) in progress.`, "warn");
+  }
+
+  function ensureProject() {
+    if (state.runState.project) return;
+    const item = getItem(state.runState.selectedItemId);
+    const variant = getRandomVariant(item);
+
+    state.runState.project = {
+      itemId: item.id,
+      variantId: variant.id,
+      progress: 0,
+      stitchedColors: {}
+    };
+
+    state.runState.runStats.itemsStarted += 1;
+    state.lifetimeStats.itemsStarted += 1;
+    ensurePerItemStats(item.id);
+    state.lifetimeStats.perItem[item.id].started += 1;
+
+    addLog(`Started ${item.name} (${variant.name}).`, "good");
+  }
+
+  function selectItem(itemId) {
+    const rs = state.runState;
+    if (rs.selectedItemId === itemId) return;
+
+    if (rs.project && rs.project.progress > 0) {
+      addLog("Finish or sell current project before switching items.", "warn");
+      return;
+    }
+
+    rs.selectedItemId = itemId;
+    const item = getItem(itemId);
+    addLog(`Selected ${item.name} (${item.variants.length} variants available).`);
+    rs.project = null;
+    ensureProject();
+    save();
+    render();
+  }
+
+  function stitch() {
+    ensureProject();
+    const rs = state.runState;
+    const hookState = rs.hooks[rs.equippedHook];
+    const hook = getHook(rs.equippedHook);
+
+    if (!hookState?.owned || !hook) return addLog("Equip a hook first.", "bad");
+    if (hookState.durability <= 0) return addLog("Hook is broken. Repair it first.", "bad");
+
+    const yarnId = rs.activeYarn;
+    if (!rs.yarn[yarnId] || rs.yarn[yarnId] <= 0) return addLog("Active yarn is empty.", "bad");
+
+    const item = getItem(rs.project.itemId);
+    const variant = getVariant(item, rs.project.variantId);
+
+    let stitched = 0;
+    for (let i = 0; i < hook.stitchPower; i++) {
+      if (rs.project.progress >= variant.stitchPath.length) break;
+      if (rs.yarn[yarnId] <= 0) break;
+
+      const cell = variant.stitchPath[rs.project.progress];
+      rs.project.stitchedColors[`${cell.row},${cell.col}`] = yarnId;
+      rs.project.progress += 1;
+      rs.yarn[yarnId] -= 1;
+      stitched += 1;
+    }
+
+    if (stitched <= 0) return addLog("Not enough active yarn to stitch.", "bad");
+
+    hookState.durability = Math.max(0, hookState.durability - (stitched * hook.durabilityLossPerStitch));
+
+    if (rs.project.progress >= variant.stitchPath.length) {
+      addLog(`${item.name} (${variant.name}) finished! Ready to sell.`, "good");
+      rs.runStats.itemsCompleted += 1;
+      state.lifetimeStats.itemsCompleted += 1;
+      ensurePerItemStats(item.id);
+      state.lifetimeStats.perItem[item.id].completed += 1;
+    } else {
+      addLog(`Stitched ${stitched} stitch${stitched > 1 ? "es" : ""} with ${getYarn(yarnId).name}.`);
+    }
+
+    save();
+    render();
+  }
+
+  function updateProfitExtremes() {
+    let best = { id: null, value: -Infinity };
+    let worst = { id: null, value: Infinity };
+
+    for (const item of items) {
+      ensurePerItemStats(item.id);
+      const s = state.lifetimeStats.perItem[item.id];
+      const profitEstimate = s.revenue;
+      if (profitEstimate > best.value) best = { id: item.id, value: profitEstimate };
+      if (profitEstimate < worst.value) worst = { id: item.id, value: profitEstimate };
+    }
+
+    state.lifetimeStats.mostProfitableItem = best.id ? getItem(best.id).name : "None";
+    state.lifetimeStats.mostProfitableItemValue = Number.isFinite(best.value) ? Math.max(0, best.value) : 0;
+    state.lifetimeStats.leastProfitableItem = worst.id ? getItem(worst.id).name : "None";
+    state.lifetimeStats.leastProfitableItemValue = Number.isFinite(worst.value) ? worst.value : 0;
+  }
+
+  function sell() {
+    const rs = state.runState;
+    if (!rs.project) return;
+
+    const item = getItem(rs.project.itemId);
+    const variant = getVariant(item, rs.project.variantId);
+    if (rs.project.progress < variant.stitchPath.length) return addLog("Item is not complete yet.", "warn");
+
+    const colorsUsed = new Set(Object.values(rs.project.stitchedColors));
+    const bonus = Math.max(0, colorsUsed.size - 1) * 3;
+    const payout = item.saleValue + bonus;
+
+    rs.money += payout;
+    rs.runStats.revenue += payout;
+    state.lifetimeStats.revenue += payout;
+    rs.runStats.bestSale = Math.max(rs.runStats.bestSale, payout);
+    state.lifetimeStats.bestSale = Math.max(state.lifetimeStats.bestSale, payout);
+
+    ensurePerItemStats(item.id);
+    state.lifetimeStats.perItem[item.id].revenue += payout;
+    state.lifetimeStats.saleHistory.unshift({
+      itemId: item.id,
+      itemName: item.name,
+      variantId: variant.id,
+      variantName: variant.name,
+      payout,
+      timestamp: Date.now()
+    });
+    state.lifetimeStats.saleHistory = state.lifetimeStats.saleHistory.slice(0, 100);
+    updateProfitExtremes();
+
+    rs.saleSummary = `Sold ${item.name} (${variant.name}) for $${payout}${bonus ? ` ($${bonus} color bonus)` : ""}.`;
+    addLog(`Sold ${item.name} (${variant.name}) for $${payout}.`, "good");
+
+    rs.project = null;
+    ensureProject();
+    save();
+    render();
+  }
+
+  function buyYarn(id) {
+    const rs = state.runState;
+    const yarn = getYarn(id);
+    if (rs.money < yarn.price) return addLog("Not enough money for yarn.", "bad");
+
+    rs.money -= yarn.price;
+    rs.yarn[id] += yarn.packUnits;
+    rs.runStats.yarnCost += yarn.price;
+    state.lifetimeStats.yarnCost += yarn.price;
+
+    addLog(`Bought ${yarn.packUnits} ${yarn.name}.`, "good");
+    save();
+    render();
+  }
+
+  function buyHook(id) {
+    const rs = state.runState;
+    const hook = getHook(id);
+    const hs = rs.hooks[id];
+    if (hs.owned) return equipHook(id);
+    if (rs.money < hook.price) return addLog("Not enough money for that hook.", "bad");
+
+    rs.money -= hook.price;
+    hs.owned = true;
+    hs.durability = hook.maxDurability;
+    rs.equippedHook = id;
+
+    addLog(`Purchased and equipped ${hook.name}.`, "good");
+    save();
+    render();
+  }
+
+  function equipHook(id) {
+    const rs = state.runState;
+    if (!rs.hooks[id].owned) return;
+    rs.equippedHook = id;
+    addLog(`Equipped ${getHook(id).name}.`);
+    save();
+    render();
+  }
+
+  function repairEquipped() {
+    const rs = state.runState;
+    const id = rs.equippedHook;
+    const hook = getHook(id);
+    const hs = rs.hooks[id];
+
+    if (!hs?.owned) return;
+    if (hs.durability >= hook.maxDurability - 0.001) return addLog("Hook is already fully repaired.", "warn");
+    if (rs.money < hook.repairCost) return addLog("Not enough money to repair.", "bad");
+
+    rs.money -= hook.repairCost;
+    rs.runStats.repairCost += hook.repairCost;
+    state.lifetimeStats.repairCost += hook.repairCost;
+    hs.durability = hook.maxDurability;
+
+    addLog(`Repaired ${hook.name}.`, "good");
+    save();
+    render();
+  }
+
+  function isStuck() {
+    const rs = state.runState;
+    const cheapestYarn = Math.min(...yarnCatalog.map(y => y.price));
+    const hasAnyYarn = Object.values(rs.yarn).some(v => v > 0);
+    const equipped = rs.hooks[rs.equippedHook];
+    const equippedHook = getHook(rs.equippedHook);
+
+    const hasUsableHook = hookCatalog.some(h => rs.hooks[h.id].owned && rs.hooks[h.id].durability > 0);
+    const canRepair = !!equipped?.owned && rs.money >= equippedHook.repairCost;
+    const canBuyHook = hookCatalog.some(h => !rs.hooks[h.id].owned && rs.money >= h.price);
+
+    const projectComplete = (() => {
+      if (!rs.project) return false;
+      const item = getItem(rs.project.itemId);
+      const variant = getVariant(item, rs.project.variantId);
+      return rs.project.progress >= variant.stitchPath.length;
+    })();
+
+    return !rs.emergencyGrantUsed && !projectComplete && rs.money < cheapestYarn && !hasAnyYarn && !hasUsableHook && !canRepair && !canBuyHook;
+  }
+
+  function claimEmergencyGrant() {
+    if (!isStuck()) return addLog("Emergency grant is only available when fully stuck.", "warn");
+    const rs = state.runState;
+
+    rs.money += 12;
+    rs.yarn.red += 8;
+    rs.hooks.basic.owned = true;
+    rs.hooks.basic.durability = Math.max(rs.hooks.basic.durability, 18);
+    rs.equippedHook = "basic";
+    rs.activeYarn = "red";
+    rs.emergencyGrantUsed = true;
+
+    addLog("Emergency Craft Grant claimed: +$12, +8 Red Yarn, worn Basic Hook restored.", "good");
+    save();
+    render();
+  }
+
+  function startOver() {
+    if (!confirm("Start a New Run? This resets your current run progress, inventory, money, tools, and active project, but keeps Lifetime Stats.")) return;
+    recordAbandonmentIfNeeded();
+    const keptLifetime = structuredClone(state.lifetimeStats);
+    state.runState = createRunState();
+    state.lifetimeStats = keptLifetime;
+    state.log = [];
+    addLog("Started a new run. Lifetime stats preserved.", "good");
+    ensureProject();
+    save();
+    render();
+  }
+
+  function fullReset() {
+    if (!confirm("FULL RESET: This will permanently wipe ALL run progress, lifetime stats, and history. Continue?")) return;
+    if (!confirm("Are you absolutely sure? This cannot be undone and will erase the entire save.")) return;
+
+    localStorage.removeItem(SAVE_KEY);
+    for (const key of LEGACY_KEYS) localStorage.removeItem(key);
+    location.reload();
+  }
+
+  function buildSavePayload() {
+    return {
+      game: GAME_TITLE,
+      version: SAVE_VERSION,
+      timestamp: new Date().toISOString(),
+      runState: state.runState,
+      lifetimeStats: state.lifetimeStats,
+      log: state.log
+    };
+  }
+
+  function saveToLocalStorage() {
+    const payload = buildSavePayload();
+    localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+    el.saveState.textContent = `Saved ${new Date().toLocaleTimeString()}`;
+  }
+
+  function save() {
+    saveToLocalStorage();
+  }
+
+  function exportSaveFile() {
+    try {
+      const payload = buildSavePayload();
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "hook_crook_and_yarn_save.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      addLog("Save exported successfully.", "good");
+    } catch {
+      addLog("Failed to export save file.", "bad");
+    }
+  }
+
+  function normalizeProject(project) {
+    if (!project || typeof project !== "object") return null;
+    const item = getItem(project.itemId);
+    if (!item) return null;
+    const variant = getVariant(item, project.variantId);
+    const progress = typeof project.progress === "number" ? Math.max(0, Math.floor(project.progress)) : 0;
+    const cappedProgress = Math.min(progress, variant.stitchPath.length);
+    const stitchedColors = project.stitchedColors && typeof project.stitchedColors === "object" ? project.stitchedColors : {};
+    return {
+      itemId: item.id,
+      variantId: variant.id,
+      progress: cappedProgress,
+      stitchedColors
+    };
+  }
+
+  function normalizedRunState(partial = {}) {
+    const defaults = createRunState();
+    const merged = {
+      ...defaults,
+      ...partial,
+      yarn: { ...defaults.yarn, ...(partial.yarn || {}) },
+      hooks: { ...defaults.hooks, ...(partial.hooks || {}) },
+      runStats: { ...defaults.runStats, ...(partial.runStats || {}) }
+    };
+
+    for (const yarn of yarnCatalog) {
+      merged.yarn[yarn.id] = typeof merged.yarn[yarn.id] === "number" ? Math.max(0, Math.floor(merged.yarn[yarn.id])) : 0;
+    }
+
+    for (const h of hookCatalog) {
+      if (!merged.hooks[h.id]) merged.hooks[h.id] = { owned: false, durability: h.maxDurability };
+      merged.hooks[h.id].owned = !!merged.hooks[h.id].owned;
+      merged.hooks[h.id].durability = typeof merged.hooks[h.id].durability === "number" ? Math.max(0, merged.hooks[h.id].durability) : h.maxDurability;
+    }
+
+    merged.hooks.basic.owned = true;
+
+    if (!yarnCatalog.some(y => y.id === merged.activeYarn)) merged.activeYarn = STARTING_ACTIVE_YARN;
+    if (!getItem(merged.selectedItemId)) merged.selectedItemId = items[0].id;
+    if (!getHook(merged.equippedHook) || !merged.hooks[merged.equippedHook].owned) merged.equippedHook = "basic";
+    merged.project = normalizeProject(merged.project);
+
+    return merged;
+  }
+
+  function normalizedLifetimeStats(partial = {}) {
+    const defaults = createLifetimeStats();
+    const merged = {
+      ...defaults,
+      ...partial,
+      perItem: { ...defaults.perItem, ...(partial.perItem || {}) },
+      saleHistory: Array.isArray(partial.saleHistory) ? partial.saleHistory : defaults.saleHistory
+    };
+
+    for (const item of items) {
+      const p = merged.perItem[item.id] || {};
+      merged.perItem[item.id] = {
+        started: typeof p.started === "number" ? Math.max(0, Math.floor(p.started)) : 0,
+        completed: typeof p.completed === "number" ? Math.max(0, Math.floor(p.completed)) : 0,
+        abandoned: typeof p.abandoned === "number" ? Math.max(0, Math.floor(p.abandoned)) : 0,
+        revenue: typeof p.revenue === "number" ? p.revenue : 0
+      };
+    }
+
+    merged.saleHistory = merged.saleHistory.slice(0, 100);
+    if (typeof merged.mostProfitableItem !== "string") merged.mostProfitableItem = "None";
+    if (typeof merged.leastProfitableItem !== "string") merged.leastProfitableItem = "None";
+
+    return merged;
+  }
+
+  function applyLoadedState(payload) {
+    state.runState = normalizedRunState(payload.runState || payload);
+    state.lifetimeStats = normalizedLifetimeStats(payload.lifetimeStats || {});
+    state.log = Array.isArray(payload.log) ? payload.log : [];
+
+    ensureProject();
+    updateProfitExtremes();
+    saveToLocalStorage();
+    render();
+  }
+
+  function migrateLegacyV1(raw) {
+    const legacy = JSON.parse(raw);
+    return {
+      game: GAME_TITLE,
+      version: SAVE_VERSION,
+      timestamp: new Date().toISOString(),
+      runState: {
+        money: legacy.money,
+        yarn: legacy.yarn,
+        activeYarn: legacy.activeYarn,
+        hooks: legacy.hooks,
+        equippedHook: legacy.equippedHook,
+        selectedItemId: legacy.selectedItemId,
+        project: legacy.project,
+        saleSummary: "",
+        emergencyGrantUsed: false,
+        runStats: {
+          itemsStarted: 0,
+          itemsCompleted: 0,
+          itemsAbandoned: 0,
+          revenue: 0,
+          yarnCost: 0,
+          repairCost: 0,
+          bestSale: 0
+        }
+      },
+      lifetimeStats: createLifetimeStats(),
+      log: Array.isArray(legacy.log) ? legacy.log : []
+    };
+  }
+
+  function validateImportPayload(payload) {
+    if (!payload || typeof payload !== "object") throw new Error("Invalid save file.");
+    if (payload.game !== GAME_TITLE) throw new Error("Invalid save file: wrong game.");
+    if (typeof payload.version !== "number") throw new Error("Invalid save file: missing version.");
+    if (!payload.runState || !payload.lifetimeStats) throw new Error("Invalid save file: missing core data.");
+    if (payload.version > SAVE_VERSION) throw new Error("Save version mismatch.");
+  }
+
+  function importSaveFile(file) {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const payload = JSON.parse(String(reader.result));
+        validateImportPayload(payload);
+        applyLoadedState(payload);
+        addLog("Save loaded successfully.", "good");
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Invalid save file.";
+        addLog(msg, "bad");
+      }
+    };
+    reader.onerror = () => addLog("Failed to read save file.", "bad");
+    reader.readAsText(file);
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (raw) {
+        const payload = JSON.parse(raw);
+        if (payload && payload.runState && payload.lifetimeStats) {
+          applyLoadedState(payload);
+          addLog("Save loaded.", "good");
+          return;
+        }
+      }
+
+      const v2 = localStorage.getItem("hookCrookAndYarnSaveV2");
+      if (v2) {
+        const parsed = JSON.parse(v2);
+        applyLoadedState({
+          game: GAME_TITLE,
+          version: SAVE_VERSION,
+          timestamp: new Date().toISOString(),
+          runState: parsed.runState || parsed,
+          lifetimeStats: parsed.lifetimeStats || createLifetimeStats(),
+          log: parsed.log || []
+        });
+        addLog("Legacy save migrated to new format.", "good");
+        return;
+      }
+
+      const v1 = localStorage.getItem("hookCrookAndYarnSaveV1");
+      if (v1) {
+        const migrated = migrateLegacyV1(v1);
+        applyLoadedState(migrated);
+        addLog("Legacy save migrated to new format.", "good");
+        return;
+      }
+    } catch {
+      state.runState = createRunState();
+      state.lifetimeStats = createLifetimeStats();
+      state.log = [];
+      addLog("Save load failed; initialized defaults safely.", "bad");
+    }
+  }
+
+  function renderYarnShop() {
+    const rs = state.runState;
+    el.yarnShop.innerHTML = "";
+    yarnCatalog.forEach(y => {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML = `<span>${y.name} <span class="tiny">($${y.price} for ${y.packUnits})</span><br><span class="tiny">Owned: ${rs.yarn[y.id]}</span></span>`;
+      const b = document.createElement("button");
+      b.textContent = "Buy";
+      b.onclick = () => buyYarn(y.id);
+      row.appendChild(b);
+      el.yarnShop.appendChild(row);
+    });
+  }
+
+  function renderSwatches() {
+    const rs = state.runState;
+    el.swatches.innerHTML = "";
+    yarnCatalog.forEach(y => {
+      const btn = document.createElement("button");
+      btn.className = "swatch" + (rs.activeYarn === y.id ? " active" : "");
+      btn.style.background = y.color;
+      btn.style.color = y.text;
+      btn.innerHTML = `${y.name.split(" ")[0]}<br>${rs.yarn[y.id]}`;
+      btn.onclick = () => {
+        rs.activeYarn = y.id;
+        save();
+        render();
+      };
+      el.swatches.appendChild(btn);
+    });
+  }
+
+  function renderHooks() {
+    const rs = state.runState;
+    el.hookList.innerHTML = "";
+    hookCatalog.forEach(h => {
+      const hs = rs.hooks[h.id];
+      const wrap = document.createElement("div");
+      wrap.className = "craft-card";
+      wrap.innerHTML = `
+        <div class="row"><strong>${h.name}</strong><span class="tiny">Power ${h.stitchPower}</span></div>
+        <div class="tiny">Price: $${h.price} | Max Durability: ${h.maxDurability} | Repair: $${h.repairCost}</div>
+        <div class="tiny">Durability: ${Math.floor(hs.durability)}/${h.maxDurability}</div>`;
+
+      const b = document.createElement("button");
+      b.textContent = hs.owned ? (rs.equippedHook === h.id ? "Equipped" : "Equip") : "Buy";
+      b.disabled = hs.owned && rs.equippedHook === h.id;
+      b.onclick = () => (hs.owned ? equipHook(h.id) : buyHook(h.id));
+      wrap.appendChild(b);
+      el.hookList.appendChild(wrap);
+    });
+
+    const eq = getHook(rs.equippedHook);
+    const eqState = rs.hooks[rs.equippedHook];
+    el.hookStatus.textContent = eq ? `${eq.name}: ${Math.floor(eqState.durability)}/${eq.maxDurability} durability` : "No hook equipped";
+  }
+
+  function renderItems() {
+    const rs = state.runState;
+    el.itemList.innerHTML = "";
+
+    items.forEach(it => {
+      const card = document.createElement("div");
+      card.className = "craft-card";
+      const variantNames = it.variants.map(v => v.name).join(", ");
+      card.innerHTML = `<div class="row"><strong>${it.name}</strong><span class="tiny">Complexity ${it.complexity}</span></div>
+        <div class="tiny">Sale: $${it.saleValue} | Variants: ${it.variants.length}</div>
+        <div class="variant-list">${variantNames}</div>`;
+
+      const b = document.createElement("button");
+      b.textContent = rs.selectedItemId === it.id ? "Selected" : "Select";
+      b.disabled = rs.selectedItemId === it.id;
+      b.onclick = () => selectItem(it.id);
+      card.appendChild(b);
+      el.itemList.appendChild(card);
+    });
+  }
+
+  function renderProject() {
+    const rs = state.runState;
+    ensureProject();
+
+    const item = getItem(rs.project.itemId);
+    const variant = getVariant(item, rs.project.variantId);
+    const progress = rs.project.progress;
+    const total = variant.stitchPath.length;
+
+    el.projectName.textContent = item.name;
+    el.projectStats.textContent = `Complexity ${item.complexity} • Sale $${item.saleValue}`;
+    el.variantName.textContent = `Variant: ${variant.name}`;
+    el.progressText.textContent = `Progress: ${progress}/${total}`;
+    el.progressFill.style.width = `${(progress / total) * 100}%`;
+
+    const next = variant.stitchPath[progress];
+    el.stitchInfo.textContent = next ? `Next stitch: r${next.row + 1} c${next.col + 1}` : "Next stitch: complete";
+
+    el.craftGrid.style.gridTemplateColumns = `repeat(${variant.shapeGrid[0].length}, 18px)`;
+    el.craftGrid.innerHTML = "";
+
+    for (let r = 0; r < variant.shapeGrid.length; r++) {
+      for (let c = 0; c < variant.shapeGrid[r].length; c++) {
+        const d = document.createElement("div");
+        d.className = "cell";
+
+        if (variant.shapeGrid[r][c] === 1) {
+          d.classList.add("shape");
+          const yarnId = rs.project.stitchedColors[`${r},${c}`];
+          if (yarnId) {
+            d.classList.add("stitched");
+            d.style.background = getYarn(yarnId).color;
+          }
+        }
+
+        el.craftGrid.appendChild(d);
+      }
+    }
+
+    el.sellBtn.disabled = progress < total;
+    el.saleSummary.textContent = rs.saleSummary || "";
+  }
+
+  function renderStats() {
+    const run = state.runState.runStats;
+    const life = state.lifetimeStats;
+    const runAvg = run.itemsCompleted ? (run.revenue / run.itemsCompleted).toFixed(1) : "0.0";
+    const lifeAvg = life.itemsCompleted ? (life.revenue / life.itemsCompleted).toFixed(1) : "0.0";
+
+    el.runStats.innerHTML = `
+      <strong>Items started</strong><span>${run.itemsStarted}</span>
+      <strong>Items completed</strong><span>${run.itemsCompleted}</span>
+      <strong>Items abandoned</strong><span>${run.itemsAbandoned}</span>
+      <strong>Run revenue</strong><span>$${run.revenue.toFixed(0)}</span>
+      <strong>Run yarn cost</strong><span>$${run.yarnCost.toFixed(0)}</span>
+      <strong>Run repair cost</strong><span>$${run.repairCost.toFixed(0)}</span>
+      <strong>Run net profit</strong><span>$${netProfit(run).toFixed(0)}</span>
+      <strong>Best single sale</strong><span>$${run.bestSale.toFixed(0)}</span>
+      <strong>Avg sale</strong><span>$${runAvg}</span>`;
+
+    el.lifetimeStats.innerHTML = `
+      <strong>Total items started</strong><span>${life.itemsStarted}</span>
+      <strong>Total items completed</strong><span>${life.itemsCompleted}</span>
+      <strong>Total items abandoned</strong><span>${life.itemsAbandoned}</span>
+      <strong>Lifetime revenue</strong><span>$${life.revenue.toFixed(0)}</span>
+      <strong>Lifetime yarn cost</strong><span>$${life.yarnCost.toFixed(0)}</span>
+      <strong>Lifetime repair cost</strong><span>$${life.repairCost.toFixed(0)}</span>
+      <strong>Lifetime net profit</strong><span>$${netProfit(life).toFixed(0)}</span>
+      <strong>Best single sale</strong><span>$${life.bestSale.toFixed(0)}</span>
+      <strong>Most profitable item</strong><span>${life.mostProfitableItem}</span>
+      <strong>Least profitable item</strong><span>${life.leastProfitableItem}</span>
+      <strong>Lifetime avg sale</strong><span>$${lifeAvg}</span>`;
+  }
+
+  function renderLog() {
+    el.log.innerHTML = "";
+    state.log.forEach(entry => {
+      const li = document.createElement("li");
+      li.textContent = entry.text;
+      if (entry.cls) li.className = entry.cls;
+      el.log.appendChild(li);
+    });
+  }
+
+  function renderEmergencyButton() {
+    el.emergencyBtn.style.display = isStuck() ? "block" : "none";
+  }
+
+  function render() {
+    const rs = state.runState;
+
+    el.money.textContent = `$${rs.money.toFixed(0)}`;
+    el.activeYarn.textContent = `Active Yarn: ${getYarn(rs.activeYarn).name}`;
+
+    renderYarnShop();
+    renderSwatches();
+    renderHooks();
+    renderItems();
+    renderProject();
+    renderStats();
+    renderEmergencyButton();
+
+    const activeCount = rs.yarn[rs.activeYarn];
+    const hasDurability = rs.hooks[rs.equippedHook].durability > 0;
+    el.stitchBtn.disabled = activeCount <= 0 || !hasDurability;
+  }
+
+  el.stitchBtn.onclick = stitch;
+  el.sellBtn.onclick = sell;
+  el.repairBtn.onclick = repairEquipped;
+  el.emergencyBtn.onclick = claimEmergencyGrant;
+  el.saveGameBtn.onclick = exportSaveFile;
+  el.loadGameBtn.onclick = () => el.loadFileInput.click();
+  el.loadFileInput.onchange = () => {
+    const file = el.loadFileInput.files && el.loadFileInput.files[0];
+    importSaveFile(file);
+    el.loadFileInput.value = "";
+  };
+  el.startOverBtn.onclick = startOver;
+  el.fullResetBtn.onclick = fullReset;
+
+  load();
+  ensureProject();
+  render();
+
+  setInterval(save, 8000);
+  window.addEventListener("beforeunload", save);
+})();
+</script>
+</body>
+</html>
