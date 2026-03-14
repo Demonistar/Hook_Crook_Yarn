@@ -1,0 +1,33 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; but the file format allows editing it directly.
+
+config_version=5
+
+[application]
+
+config/name="Hook, Crook and Yarn"
+config/description="A cozy crochet crafting game"
+run/main_scene="res://scenes/Main.tscn"
+config/features=PackedStringArray("4.2", "GL Compatibility")
+config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/resizable=true
+window/stretch/mode="viewport"
+window/stretch/aspect="expand"
+
+[autoload]
+
+ItemData="*res://scripts/ItemData.gd"
+GameState="*res://scripts/GameState.gd"
+SaveManager="*res://scripts/SaveManager.gd"
+CraftingManager="*res://scripts/CraftingManager.gd"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
