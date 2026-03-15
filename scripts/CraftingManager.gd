@@ -47,20 +47,24 @@ func get_render_grid() -> Array:
 		return []
 	var sg = variant["shape_grid"]
 	var rows = sg.size()
-	var cols = sg[0].size()
-	# Build result grid
+	# Find max cols across all rows (grids can be ragged)
+	var max_cols := 0
+	for row in sg:
+		if row.size() > max_cols:
+			max_cols = row.size()
+	# Build result grid padded to max_cols
 	var grid = []
 	for r in range(rows):
 		var row = []
-		for c in range(cols):
+		for c in range(max_cols):
 			row.append("empty")
 		grid.append(row)
-	# Mark ghost cells (all valid cells start as ghost)
+	# Mark valid shape cells as ghost
 	for r in range(rows):
 		for c in range(sg[r].size()):
 			if sg[r][c] == 1:
 				grid[r][c] = "ghost"
-	# Fill in stitched cells
+	# Overwrite stitched cells with their color
 	for s in GameState.stitches_done:
 		grid[s["row"]][s["col"]] = s["color"]
 	return grid
