@@ -31,7 +31,7 @@ const HOOK_CATALOG := [
 # PLUSHIE — character silhouettes 9x10 or so
 # BOOTIE  — shoe profile: rounded toe, heel bump, ankle cuff
 
-static func get_items() -> Array:
+func get_items() -> Array:
 	return [
 		{
 			"id": "coaster", "name": "Coaster", "complexity": 1, "sale_value": 62,
@@ -58,7 +58,7 @@ static func get_items() -> Array:
 # ─── COASTER VARIANTS ────────────────────────────────────────────────────────
 # Round coaster — a clear disc silhouette, 9x9
 # Hexagonal coaster — flat-top hex, 9x9
-static func _coaster_variants() -> Array:
+func _coaster_variants() -> Array:
 	return [
 		{
 			"id": "round", "name": "Round",
@@ -108,7 +108,7 @@ static func _coaster_variants() -> Array:
 # Classic — long 14-wide, 5-tall rectangle
 # Striped ends — same shape but game allows multicolor naturally
 # Tapered — slightly narrower at ends (like folded scarf profile)
-static func _scarf_variants() -> Array:
+func _scarf_variants() -> Array:
 	return [
 		{
 			"id": "classic", "name": "Classic",
@@ -149,7 +149,7 @@ static func _scarf_variants() -> Array:
 # Pom-Pom: small round cluster (3 cells) above dome.
 # Slouch: taller, slight lean/gather at top.
 # Folded Rim: wider brim section at bottom.
-static func _beanie_variants() -> Array:
+func _beanie_variants() -> Array:
 	return [
 		{
 			"id": "classic", "name": "Classic Beanie",
@@ -215,7 +215,7 @@ static func _beanie_variants() -> Array:
 
 # ─── PLUSHIE VARIANTS ────────────────────────────────────────────────────────
 # Each is ~8–10 wide, ~9–10 tall. Designed to be clearly readable.
-static func _plushie_variants() -> Array:
+func _plushie_variants() -> Array:
 	return [
 		{
 			"id": "frog", "name": "Frog",
@@ -407,7 +407,7 @@ static func _plushie_variants() -> Array:
 # ─── BOOTIE VARIANTS ─────────────────────────────────────────────────────────
 # All bootie variants must read as a shoe/sock from the side.
 # Profile: toe curves forward/up on left, heel at right, ankle cuff at top-right.
-static func _bootie_variants() -> Array:
+func _bootie_variants() -> Array:
 	return [
 		{
 			"id": "simple_shoe", "name": "Simple Shoe",
@@ -457,7 +457,7 @@ static func _bootie_variants() -> Array:
 
 # ─── PATH BUILDER ────────────────────────────────────────────────────────────
 # Generates snake-order stitch path from shape_grid.
-static func make_stitch_path(shape_grid: Array) -> Array:
+func make_stitch_path(shape_grid: Array) -> Array:
 	var path := []
 	for r in range(shape_grid.size()):
 		var row = shape_grid[r]
@@ -472,19 +472,19 @@ static func make_stitch_path(shape_grid: Array) -> Array:
 	return path
 
 # ─── RESOLVE HELPERS ─────────────────────────────────────────────────────────
-static func get_yarn(id: String) -> Dictionary:
+func get_yarn(id: String) -> Dictionary:
 	for y in YARN_CATALOG:
 		if y["id"] == id:
 			return y
 	return {}
 
-static func get_hook(id: String) -> Dictionary:
+func get_hook(id: String) -> Dictionary:
 	for h in HOOK_CATALOG:
 		if h["id"] == id:
 			return h
 	return {}
 
-static func build_items_with_paths() -> Array:
+func build_items_with_paths() -> Array:
 	var result := []
 	for item in get_items():
 		var built_variants := []

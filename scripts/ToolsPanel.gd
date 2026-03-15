@@ -72,7 +72,6 @@ func _refresh() -> void:
 			continue
 		var state = GameState.hooks.get(h["id"], {})
 		var owned: bool = state.get("owned", false)
-		var dur: float = state.get("durability", 0.0)
 		var is_active: bool = (GameState.active_hook_id == h["id"])
 
 		var title: Label = section.find_child("Title", true, false)
