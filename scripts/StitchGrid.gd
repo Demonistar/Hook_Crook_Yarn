@@ -67,7 +67,7 @@ func _draw_stitched(rect: Rect2, color_id: String) -> void:
 	var iy1 = rect.position.y + 3
 	var ix2 = rect.end.x - 3
 	var iy2 = rect.end.y - 3
-	var lc  := border_col
+	var lc: Color = border_col
 	lc.a = 0.45
 	draw_line(Vector2(ix1, iy1), Vector2(ix2, iy2), lc, 0.8)
 	draw_line(Vector2(ix2, iy1), Vector2(ix1, iy2), lc, 0.8)

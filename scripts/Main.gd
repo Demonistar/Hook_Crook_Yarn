@@ -456,7 +456,7 @@ func _refresh_hooks() -> void:
 		var hid = h["id"]
 		var hs = GameState.hooks.get(hid, {})
 		var owned: bool = hs.get("owned", false)
-		var dur: float = hs.get("durability", 0.0)
+		var _dur: float = hs.get("durability", 0.0)
 		var is_active: bool = (GameState.active_hook_id == hid)
 
 		if _hook_title_lbls.has(hid):
